@@ -169,7 +169,7 @@ Execute the program using runserver command.
 ```
 
 
-## OUTPUT!
+## OUTPUT
 
 ![alt text](<Screenshot (14).png>)
 
