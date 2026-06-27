@@ -35,26 +35,26 @@ Execute the program using runserver command.
 ## RESULT
 The program for creating slot timetable using basic HTML tags is executed successfully.
 
-## Crash Recovery Policy (SwiftData)
+## クラッシュ復旧方針（SwiftData）
 
-### Objective
-Avoid startup crashes when local persistent data is incompatible or corrupted, and provide a user-consented recovery flow.
+### 目的
+ローカル永続データの不整合や破損が起きた場合でも、起動時クラッシュを回避し、ユーザー同意のうえで復旧できる導線を提供する。
 
-### Scope
-1. Replace startup-time `fatalError`/`assertionFailure` on `ModelContainer` creation failure with recoverable handling.
-2. Show a blocking dialog when recovery is possible:
-   - Message: `登録データが不整合です。データをクリアしますか？`
-   - Actions: `はい` / `キャンセル`
-3. On user approval, remove the local store and retry `ModelContainer` initialization.
-4. On cancel, keep the app in a safe state with a clear error screen (no partial launch).
+### 対象範囲
+1. `ModelContainer` 生成失敗時に起動直後の `fatalError` / `assertionFailure` を使わず、復旧可能なエラーハンドリングに置き換える。
+2. 復旧可能な場合はブロッキングダイアログを表示する。
+   - 文言: `登録データが不整合です。データをクリアしますか？`
+   - 操作: `はい` / `キャンセル`
+3. ユーザーが `はい` を選択した場合はローカルストアを削除し、`ModelContainer` を再初期化する。
+4. `キャンセル` の場合は中途半端に起動せず、明示的なエラー画面で安全に停止する。
 
-### Implementation approach
-1. Move persistent container bootstrapping into a dedicated startup coordinator.
-2. Surface initialization state to SwiftUI root (`loading`, `ready`, `recoveryRequired`, `failed`).
-3. Implement a store reset routine that targets only app-owned persistent files.
-4. Reinitialize container after reset and continue normal app launch.
+### 実装アプローチ
+1. 永続コンテナの起動処理を専用の起動コーディネーターに切り出す。
+2. 初期化状態を SwiftUI ルートに公開する（`loading` / `ready` / `recoveryRequired` / `failed`）。
+3. ストア削除処理はアプリ管理下の永続ファイルのみに限定する。
+4. 削除後にコンテナを再初期化し、通常起動へ復帰させる。
 
-### Operational notes
-1. This recovery resets local data; user consent is mandatory.
-2. Add structured error logging around initial failure and recovery result for TestFlight diagnostics.
-3. Keep migration path as the primary long-term strategy; reset flow is fallback for non-recoverable store states.
+### 運用上の注意
+1. 本復旧ではローカルデータが消去されるため、ユーザー同意を必須とする。
+2. TestFlight で追跡可能にするため、初回失敗理由と復旧結果を構造化ログで記録する。
+3. 長期的にはマイグレーション対応を優先し、リセット導線は非復旧時のフォールバックとして扱う。
